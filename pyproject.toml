@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "ai-serving"
+version = "0.1.0"
+description = ""
+authors = ["'Jeong Arm' <'kjwonmail@gmail.com'>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+celery = {extras = ["redis"], version = "^5.3.4"}
+sqlalchemy = "^2.0.20"
+alembic = "^1.12.0"
+psycopg2 = "^2.9.7"
+python-multipart = "^0.0.6"
+jinja2 = "^3.1.2"
+minio = "^7.1.17"
+
+[tool.poetry.group.web.dependencies]
+fastapi = "^0.103.1"
+uvicorn = "^0.23.2"
+
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.1.0"
+flake8-import-order = "^0.18.2"
+httpx = "^0.25.0"
+
+
+[tool.poetry.group.worker.dependencies]
+onnxruntime = "^1.15.1"
+appdirs = "^1.4.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:15
+    networks:
+      - internal
+    volumes:
+      - ./docker_data/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=database
+
+  redis:
+    image: redis:latest
+    networks:
+      - internal
+    volumes:
+      - ./docker_data/redis:/data
+
+  minio:
+    image: quay.io/minio/minio
+    command:
+      server /data --console-address :9001
+    networks:
+      - internal
+      - external
+    volumes:
+      - ./docker_data/minio:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=password
+
+  web: &web
+    image: aiserving:latest
+    build: .
+    command: uvicorn ai_serving.main:app --host 0 --port 8000
+    networks:
+      - internal
+      - external
+    ports:
+      - 8000:8000
+    environment: &env
+      - DATABASE_URL=postgresql://postgres:password@db/database
+      - REDIS_URL=redis://redis/0
+      - MINIO_HOST=minio:9000
+      - MINIO_ACCESS_KEY=root
+      - MINIO_ACCESS_SECRET=password
+      - MINIO_BUCKET=ais
+      - MINIO_INSECURE=true
+
+  worker:
+    image: aiserving:latest
+    build: .
+    command: celery -A ai_serving.tasks worker --pool=solo --concurrency=2
+    networks:
+      - internal
+      - external
+    environment: *env
+
+
+networks:
+  internal:
+    internal: true
+  external: {}
